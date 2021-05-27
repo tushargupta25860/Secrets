@@ -72,7 +72,7 @@ User.findById(id,function(err,user){
 passport.use(new GoogleStrategy({
     clientID: "443014414802-7cmhqr6qn8ciu7ng9len7knj83et4ulo.apps.googleusercontent.com",
     clientSecret: "ZgTB6je9v5a1JOMb5ce20n3L",
-    callbackURL: "https://infinite-temple-31481.herokuapp.com/auth/google/secrets",
+    callbackURL: "https://pacific-plateau-50955.herokuapp.com/auth/google/secrets",
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   function(accessToken, refreshToken, profile, cb) {
