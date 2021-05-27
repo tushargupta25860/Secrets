@@ -1,0 +1,34 @@
+<%- include('partials/header') %>
+
+<div class="jumbotron text-center">
+  <div class="container">
+    <i class="fas fa-key fa-6x"></i>
+    <h1 class="display-3">ALL The secrets that you have shared up untill now!</h1>
+    <section id="pricing">
+      <div class="row row-flat">
+        <% user.forEach(function(se){%>
+        <div class="col-lg-6 flat">
+        <div class="card">
+  <div class="card-body">
+  <p class="gigi secret-text"><%=se%></p>
+    <form action="/delete" method="post">
+      <button type="submit" name="checkbox" value="<%=se%>"><i class="fas fa-trash-alt"></i></button>
+    </form>
+    <form action="/edit" method="post">
+      <button type="submit" name="checkbox" value="<%=se%>"><i class="fas fa-edit"></i></button>
+    </form>
+  </div>
+</div>
+        </div>
+        <%});%>
+      </div>
+
+    </section>
+
+    <hr>
+    <a class="btn btn-light btn-lg" href="/logout" role="button">Log Out</a>
+    <a class="btn btn-dark btn-lg" href="/submit" role="button">Submit a Secret</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
