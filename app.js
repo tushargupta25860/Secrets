@@ -8,11 +8,13 @@ const bodyParser = require('body-parser');
 const _ = require('lodash');
 const session = require('express-session');
 const passport = require('passport');
-const FacebookStrategy  =     require('passport-facebook').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 const passportLocalMongoose = require('passport-local-mongoose');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const findOrCreate = require('mongoose-findorcreate');
-const prompt = require('prompt-sync')({sigint: true});
+const prompt = require('prompt-sync')({
+  sigint: true
+});
 
 const app = express();
 
@@ -48,7 +50,8 @@ const userSchema = new mongoose.Schema({
   username: String,
   password: String,
   googleId: String,
-  secret:   [
+  facebookId: String,
+  secret: [
     String
   ]
 });
@@ -59,23 +62,14 @@ userSchema.plugin(findOrCreate);
 
 const User = mongoose.model("User", userSchema);
 
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
-
-
 passport.use(User.createStrategy());
-passport.serializeUser(function(user, done){
-  done(null,user.id);
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
 });
-passport.deserializeUser(function(id,done){
-User.findById(id,function(err,user){
-  done(err,user);
-});
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
 });
 
 //needed to change the gogle url and also the google oauth url
@@ -87,51 +81,59 @@ passport.use(new GoogleStrategy({
   },
   function(accessToken, refreshToken, profile, cb) {
     // console.log(profile);
-    User.findOrCreate({ username: profile.emails[0].value,googleId: profile.id }, function (err, user) {
+    User.findOrCreate({
+      username: profile.emails[0].value,
+      googleId: profile.id
+    }, function(err, user) {
       return cb(err, user);
     });
   }
 ));
 
 passport.use(new FacebookStrategy({
-    clientID: 1184911205314020,
+    clientID: "1184911205314020",
     clientSecret: "5722a38ede787162ff934ea48e254a59",
     callbackURL: "https://pacific-plateau-50955.herokuapp.com/auth/facebook/secrets"
   },
-  function(accessToken, refreshToken, profile, done) {
-    User.findOrCreate({ username: profile.emails[0].value,googleId: profile.id }, function (err, user) {
+  function(accessToken, refreshToken, profile, cb) {
+    console.log(profile);
+    User.findOrCreate({
+      facebookId: profile.id
+    }, function(err, user) {
       return cb(err, user);
     });
   }
 ));
-
-// 118203930730252195049
-
 app.get('/', function(req, res) {
   res.render("home");
 });
 
 app.get("/auth/google",
-  passport.authenticate("google",{scope : ['profile',"email"]})
+  passport.authenticate("google", {
+    scope: ['profile', "email"]
+  })
 );
 
 app.get("/auth/google/secrets",
-passport.authenticate("google",{failureRedirect : "login"}),
-function(req, res){
-  res.redirect('/secrets');
-}
-);
-
-app.get('/auth/facebook', passport.authenticate('facebook',{scope:'email'}));
-
-
-app.get('/auth/facebook/secrets',
-  passport.authenticate('facebook', {failureRedirect: '/login' }),
+  passport.authenticate("google", {
+    failureRedirect: "login"
+  }),
   function(req, res) {
     res.redirect('/secrets');
+  }
+);
+
+app.get('/auth/facebook',
+  passport.authenticate('facebook',{authType: 'reauthenticate'}));
+
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/');
   });
 
-app.get('/logout', function(req, res){
+app.get('/logout', function(req, res) {
   req.logout();
   res.redirect('/');
 });
@@ -142,16 +144,16 @@ app.get('/login', function(req, res) {
 
 
 
-app.get("/submit",function(req, res){
-  if(req.isAuthenticated()){
+app.get("/submit", function(req, res) {
+  if (req.isAuthenticated()) {
     res.render("submit");
-  }else{
+  } else {
     res.redirect("login");
   }
 });
 
 
-app.post("/submit",async function(req, res){
+app.post("/submit", async function(req, res) {
   const submittedrequest = req.body.secret;
   // if(req.isAuthenticated()){
   //   req.user.secret = req.secret;
@@ -159,19 +161,19 @@ app.post("/submit",async function(req, res){
   // }else{
   //   res.redirect("login");
   // }
-  await User.findById(req.user.id, function(err,foundUser){
-    if(!err){
-      if(foundUser){
+  await User.findById(req.user.id, function(err, foundUser) {
+    if (!err) {
+      if (foundUser) {
         foundUser.secret.push(submittedrequest);
-        foundUser.save(function(err){
-          if(err){
+        foundUser.save(function(err) {
+          if (err) {
             console.log(err);
-          }else{
+          } else {
             res.redirect("secrets");
           }
         });
       }
-    }else{
+    } else {
       console.log(err);
     }
   })
@@ -183,12 +185,18 @@ app.get('/register', function(req, res) {
 
 app.get("/secrets", async function(req, res) {
   // const submittedrequest = req.body.secret;
-  await User.find({"secret": {$ne: null}}, function(err,foundUser){
-    if(err){
-    console.log(err);
-    }else{
-      if(foundUser){
-        res.render("secrets",{foo: foundUser});
+  await User.find({
+    "secret": {
+      $ne: null
+    }
+  }, function(err, foundUser) {
+    if (err) {
+      console.log(err);
+    } else {
+      if (foundUser) {
+        res.render("secrets", {
+          foo: foundUser
+        });
       }
     }
   });
@@ -196,9 +204,9 @@ app.get("/secrets", async function(req, res) {
 
 
 
-app.post("/edit",function(req,res){
+app.post("/edit", function(req, res) {
 
-} );
+});
 
 app.post("/register", async function(req, res) {
 
@@ -215,39 +223,44 @@ app.post("/register", async function(req, res) {
   });
 });
 
-app.post("/delete", async function(req, res){
+app.post("/delete", async function(req, res) {
   console.log(req.body.checkbox);
-  if(req.isAuthenticated()){
-  await  User.updateOne(
-    { _id: req.user.id },
-    { $pull: { secret: req.body.checkbox } }
-  ,function(err){
-    if(err){
-      console.log(err)
-    }else{
-      res.redirect("/profile");
-    }
-  });
-}else{
-  res.redirect("/login");
-}
-   // res.redirect("/profile");
+  if (req.isAuthenticated()) {
+    await User.updateOne({
+      _id: req.user.id
+    }, {
+      $pull: {
+        secret: req.body.checkbox
+      }
+    }, function(err) {
+      if (err) {
+        console.log(err)
+      } else {
+        res.redirect("/profile");
+      }
+    });
+  } else {
+    res.redirect("/login");
+  }
+  // res.redirect("/profile");
 });
 
-app.get("/profile", async function(req, res){
-  if(req.isAuthenticated()){
-    await User.findById(req.user.id, function(err, foundUser){
-       if(err){
-           console.log(err);
-       }else{
-         if(foundUser)
-        res.render("profile",{user: foundUser.secret});
-      else{
-        console.log(foundUser);
+app.get("/profile", async function(req, res) {
+  if (req.isAuthenticated()) {
+    await User.findById(req.user.id, function(err, foundUser) {
+      if (err) {
+        console.log(err);
+      } else {
+        if (foundUser)
+          res.render("profile", {
+            user: foundUser.secret
+          });
+        else {
+          console.log(foundUser);
+        }
       }
-    }
     });
-  }else{
+  } else {
     res.redirect("/login");
   }
 });
