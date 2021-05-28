@@ -126,7 +126,7 @@ app.get("/auth/google/secrets",
 app.get('/auth/facebook',
   passport.authenticate('facebook',{authType: 'reauthenticate'}));
 
-app.get('/auth/facebook/callback',
+app.get('/auth/facebook/secrets',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
