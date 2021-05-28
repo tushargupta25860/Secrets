@@ -95,7 +95,7 @@ passport.use(new GoogleStrategy({
 
 passport.use(new FacebookStrategy({
     clientID: 1184911205314020,
-    clientSecret: "5722a38ede787162ff934ea48e254a59 ",
+    clientSecret: "5722a38ede787162ff934ea48e254a59",
     callbackURL: "https://pacific-plateau-50955.herokuapp.com/auth/facebook/secrets"
   },
   function(accessToken, refreshToken, profile, done) {
@@ -122,7 +122,7 @@ function(req, res){
 }
 );
 
-app.get('/auth/facebook', passport.authenticate('facebook',{scope:['email']}));
+app.get('/auth/facebook', passport.authenticate('facebook',{scope:'email'}));
 
 
 app.get('/auth/facebook/secrets',
