@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const _ = require('lodash');
 const session = require('express-session');
 const passport = require('passport');
+const FacebookStrategy  =     require('passport-facebook').Strategy;
 const passportLocalMongoose = require('passport-local-mongoose');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const findOrCreate = require('mongoose-findorcreate');
@@ -58,6 +59,15 @@ userSchema.plugin(findOrCreate);
 
 const User = mongoose.model("User", userSchema);
 
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+
 passport.use(User.createStrategy());
 passport.serializeUser(function(user, done){
   done(null,user.id);
@@ -83,6 +93,18 @@ passport.use(new GoogleStrategy({
   }
 ));
 
+passport.use(new FacebookStrategy({
+    clientID: 1184911205314020,
+    clientSecret: "5722a38ede787162ff934ea48e254a59 ",
+    callbackURL: "https://pacific-plateau-50955.herokuapp.com/auth/facebook/secrets"
+  },
+  function(accessToken, refreshToken, profile, done) {
+    User.findOrCreate({ username: profile.emails[0].value,googleId: profile.id }, function (err, user) {
+      return cb(err, user);
+    });
+  }
+));
+
 // 118203930730252195049
 
 app.get('/', function(req, res) {
@@ -100,9 +122,28 @@ function(req, res){
 }
 );
 
+app.get('/auth/facebook', passport.authenticate('facebook',{scope:['profile','email']}));
+
+
+app.get('/auth/facebook/secrets',
+  passport.authenticate('facebook', {failureRedirect: 'login' }),
+  function(req, res) {
+    res.redirect('/secrets');
+  });
+
+app.get('/logout', function(req, res){
+  req.logout();
+  res.redirect('/');
+});
+
 app.get('/login', function(req, res) {
   res.render("login");
 });
+
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) { return next(); }
+  res.redirect('/login')
+}
 
 
 app.get("/submit",function(req, res){
