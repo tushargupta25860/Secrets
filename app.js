@@ -122,11 +122,11 @@ function(req, res){
 }
 );
 
-app.get('/auth/facebook', passport.authenticate('facebook',{scope:['profile','email']}));
+app.get('/auth/facebook', passport.authenticate('facebook',{scope:['email']}));
 
 
 app.get('/auth/facebook/secrets',
-  passport.authenticate('facebook', {failureRedirect: 'login' }),
+  passport.authenticate('facebook', {failureRedirect: '/login' }),
   function(req, res) {
     res.redirect('/secrets');
   });
@@ -140,10 +140,6 @@ app.get('/login', function(req, res) {
   res.render("login");
 });
 
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) { return next(); }
-  res.redirect('/login')
-}
 
 
 app.get("/submit",function(req, res){
