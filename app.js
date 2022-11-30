@@ -36,7 +36,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-const client = mongoose.connect("mongodb+srv://tushar-gupt:Tusha_78165@cluster0.mwrzr.mongodb.net/open?retryWrites=true&w=majority", {
+const client = mongoose.connect("mongodb+srv://tushar-gupt:Tusha_78165@cluster0.mwrzr.mongodb.net/?retryWrites=true&w=majority", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
@@ -131,11 +131,6 @@ app.get('/auth/facebook/secrets',
     res.redirect('/secrets');
   });
 
-app.get('/logout', function(req, res){
-  req.logout();
-  res.redirect('/');
-});
-
 app.get('/login', function(req, res) {
   res.render("login");
 });
@@ -153,13 +148,8 @@ app.get("/submit",function(req, res){
 
 app.post("/submit",async function(req, res){
   const submittedrequest = req.body.secret;
-  // if(req.isAuthenticated()){
-  //   req.user.secret = req.secret;
-  //   res.redirect("secrets");
-  // }else{
-  //   res.redirect("login");
-  // }
-  await User.findById(req.user.id, function(err,foundUser){
+  console.log(submittedrequest);
+  await User.findById(req.user._id, function(err,foundUser){
     if(!err){
       if(foundUser){
         foundUser.secret.push(submittedrequest);
@@ -285,8 +275,11 @@ app.get("/profile", async function(req, res){
   }
 });
 
-app.get('/logout', function(req, res) {
-  req.logout();
+app.get('/logout', function(req, res, next) {
+  req.logOut(req.user,function(err){
+    if(err)
+    console.log(err);
+  });
   res.redirect("/");
 });
 
@@ -302,6 +295,7 @@ app.post("/login", function(req, res) {
       console.log(err);
     } else {
       passport.authenticate("local")(req, res, function() {
+        // console.log(req);
         res.redirect("/secrets");
       });
     }
